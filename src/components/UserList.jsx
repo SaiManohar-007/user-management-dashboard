@@ -1,4 +1,3 @@
-// src/components/UserList.jsx
 import React from "react";
 
 export default function UserList({ users, onEdit, onDelete }) {

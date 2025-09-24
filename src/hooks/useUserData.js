@@ -1,10 +1,9 @@
-// src/hooks/useUserData.js
 import { useState, useEffect } from "react";
 import * as api from "../api/api";
 
 export default function useUserData() {
-  const [allUsers, setAllUsers] = useState([]); // full dataset
-  const [users, setUsers] = useState([]); // paginated view
+  const [allUsers, setAllUsers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [action, setAction] = useState(null);
@@ -13,6 +12,33 @@ export default function useUserData() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
+
+  // filters
+  const [filters, setFilters] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    department: "",
+  });
+
+  function applyFilters(data) {
+    return data.filter((u) => {
+      return (
+        u.firstName.toLowerCase().includes(filters.firstName.toLowerCase()) &&
+        u.lastName.toLowerCase().includes(filters.lastName.toLowerCase()) &&
+        u.email.toLowerCase().includes(filters.email.toLowerCase()) &&
+        u.department.toLowerCase().includes(filters.department.toLowerCase())
+      );
+    });
+  }
+
+  function setFilter(newFilters) {
+    setFilters(newFilters);
+    const filtered = applyFilters(allUsers);
+    setTotalUsers(filtered.length);
+    applyPagination(filtered, 1, pageSize);
+    setCurrentPage(1);
+  }
 
   async function fetchUsers() {
     setLoading(true);
@@ -47,19 +73,25 @@ export default function useUserData() {
 
   function changePage(page) {
     setCurrentPage(page);
-    applyPagination(allUsers, page, pageSize);
+    const filtered = applyFilters(allUsers);
+    applyPagination(filtered, page, pageSize);
   }
 
   function changePageSize(size) {
     setPageSize(size);
     setCurrentPage(1);
-    applyPagination(allUsers, 1, size);
+    const filtered = applyFilters(allUsers);
+    applyPagination(filtered, 1, size);
   }
 
   async function addUser(user) {
     setAction("adding");
     try {
-      const payload = { name: `${user.firstName} ${user.lastName}`, email: user.email, company: { name: user.department } };
+      const payload = {
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        company: { name: user.department },
+      };
       const res = await api.createUser(payload);
       const created = { id: res.id || Date.now(), ...user };
       const updatedAll = [created, ...allUsers];
@@ -75,7 +107,11 @@ export default function useUserData() {
   async function editUser(id, updated) {
     setAction("editing");
     try {
-      const payload = { name: `${updated.firstName} ${updated.lastName}`, email: updated.email, company: { name: updated.department } };
+      const payload = {
+        name: `${updated.firstName} ${updated.lastName}`,
+        email: updated.email,
+        company: { name: updated.department },
+      };
       await api.updateUser(id, payload);
       const updatedAll = allUsers.map((u) => (u.id === id ? { ...u, ...updated } : u));
       setAllUsers(updatedAll);
@@ -113,6 +149,8 @@ export default function useUserData() {
     pageSize,
     changePage,
     changePageSize,
+    filters,
+    setFilter,
     addUser,
     editUser,
     removeUser,
