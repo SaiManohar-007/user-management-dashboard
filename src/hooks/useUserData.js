@@ -21,6 +21,10 @@ export default function useUserData() {
     department: "",
   });
 
+  // sorting
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc"); // asc or desc
+
   function applyFilters(data) {
     return data.filter((u) => {
       return (
@@ -32,12 +36,61 @@ export default function useUserData() {
     });
   }
 
+  function applySorting(data) {
+    if (!sortField) return data;
+    const sorted = [...data].sort((a, b) => {
+      let aValue = a[sortField] || "";
+      let bValue = b[sortField] || "";
+
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }
+
+  function applyPagination(fullList, page, size) {
+    const sorted = applySorting(fullList);
+    const start = (page - 1) * size;
+    const end = start + size;
+    setUsers(sorted.slice(start, end));
+  }
+
   function setFilter(newFilters) {
     setFilters(newFilters);
     const filtered = applyFilters(allUsers);
     setTotalUsers(filtered.length);
     applyPagination(filtered, 1, pageSize);
     setCurrentPage(1);
+  }
+
+  function sortBy(field) {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    const filtered = applyFilters(allUsers);
+    applyPagination(filtered, currentPage, pageSize);
+  }
+
+  function changePage(page) {
+    setCurrentPage(page);
+    const filtered = applyFilters(allUsers);
+    applyPagination(filtered, page, pageSize);
+  }
+
+  function changePageSize(size) {
+    setPageSize(size);
+    setCurrentPage(1);
+    const filtered = applyFilters(allUsers);
+    applyPagination(filtered, 1, size);
   }
 
   async function fetchUsers() {
@@ -63,25 +116,6 @@ export default function useUserData() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function applyPagination(fullList, page, size) {
-    const start = (page - 1) * size;
-    const end = start + size;
-    setUsers(fullList.slice(start, end));
-  }
-
-  function changePage(page) {
-    setCurrentPage(page);
-    const filtered = applyFilters(allUsers);
-    applyPagination(filtered, page, pageSize);
-  }
-
-  function changePageSize(size) {
-    setPageSize(size);
-    setCurrentPage(1);
-    const filtered = applyFilters(allUsers);
-    applyPagination(filtered, 1, size);
   }
 
   async function addUser(user) {
@@ -151,6 +185,9 @@ export default function useUserData() {
     changePageSize,
     filters,
     setFilter,
+    sortField,
+    sortOrder,
+    sortBy,
     addUser,
     editUser,
     removeUser,

@@ -1,18 +1,27 @@
 import React from "react";
 
-export default function UserList({ users, onEdit, onDelete }) {
+export default function UserList({ users, onEdit, onDelete, sortField, sortOrder, sortBy }) {
   if (!users.length) return <p className="text-center mt-4">no users found</p>;
+
+  const renderHeader = (label, field) => (
+    <th
+      className="border px-3 py-2 text-left cursor-pointer select-none"
+      onClick={() => sortBy(field)}
+    >
+      {label} {sortField === field ? (sortOrder === "asc" ? "▲" : "▼") : ""}
+    </th>
+  );
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full border border-gray-200 text-sm">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border px-3 py-2 text-left">ID</th>
-            <th className="border px-3 py-2 text-left">First Name</th>
-            <th className="border px-3 py-2 text-left">Last Name</th>
-            <th className="border px-3 py-2 text-left">Email</th>
-            <th className="border px-3 py-2 text-left">Department</th>
+            {renderHeader("ID", "id")}
+            {renderHeader("First Name", "firstName")}
+            {renderHeader("Last Name", "lastName")}
+            {renderHeader("Email", "email")}
+            {renderHeader("Department", "department")}
             <th className="border px-3 py-2 text-center">Actions</th>
           </tr>
         </thead>

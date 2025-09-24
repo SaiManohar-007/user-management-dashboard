@@ -21,6 +21,9 @@ export default function App() {
     changePageSize,
     filters,
     setFilter,
+    sortField,
+    sortOrder,
+    sortBy,
   } = useUserData();
 
   const [editingUser, setEditingUser] = useState(null);
@@ -51,7 +54,6 @@ export default function App() {
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4 text-center">user management</h1>
 
-      {/* Filter & Add buttons */}
       <div className="mb-4 flex space-x-2">
         <button
           onClick={() => setShowFilter(true)}
@@ -67,7 +69,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* Filter Popup */}
       <FilterPopup
         isOpen={showFilter}
         onClose={() => setShowFilter(false)}
@@ -75,7 +76,6 @@ export default function App() {
         initialFilters={filters}
       />
 
-      {/* Loading / error / action messages */}
       {loading && <p className="text-blue-500 mb-2">loading users...</p>}
       {error && <p className="text-red-500 mb-2">{error}</p>}
       {action && (
@@ -86,7 +86,6 @@ export default function App() {
         </p>
       )}
 
-      {/* User Form */}
       {showForm && (
         <div className="mb-6">
           <UserForm
@@ -97,10 +96,15 @@ export default function App() {
         </div>
       )}
 
-      {/* User Table */}
-      <UserList users={users} onEdit={handleEditClick} onDelete={removeUser} />
+      <UserList
+        users={users}
+        onEdit={handleEditClick}
+        onDelete={removeUser}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        sortBy={sortBy}
+      />
 
-      {/* Pagination */}
       <Pagination
         totalUsers={totalUsers}
         currentPage={currentPage}
