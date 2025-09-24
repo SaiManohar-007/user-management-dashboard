@@ -7,7 +7,9 @@ export default function useUserData() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // fetch from API and normalize fields
+  // new state for action status
+  const [action, setAction] = useState(null); // "adding" | "editing" | "deleting" | null
+
   async function fetchUsers() {
     setLoading(true);
     setError(null);
@@ -34,32 +36,47 @@ export default function useUserData() {
   }
 
   async function addUser(user) {
-    const payload = {
-      name: `${user.firstName} ${user.lastName}`.trim(),
-      email: user.email,
-      company: { name: user.department },
-    };
-    const res = await api.createUser(payload);
-    const created = { id: res.id || Date.now(), ...user };
-    setUsers((prev) => [created, ...prev]);
-    return created;
+    setAction("adding");
+    try {
+      const payload = {
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email,
+        company: { name: user.department },
+      };
+      const res = await api.createUser(payload);
+      const created = { id: res.id || Date.now(), ...user };
+      setUsers((prev) => [created, ...prev]);
+      return created;
+    } finally {
+      setAction(null);
+    }
   }
 
   async function editUser(id, updated) {
-    const payload = {
-      name: `${updated.firstName} ${updated.lastName}`.trim(),
-      email: updated.email,
-      company: { name: updated.department },
-    };
-    await api.updateUser(id, payload);
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, ...updated } : u))
-    );
+    setAction("editing");
+    try {
+      const payload = {
+        name: `${updated.firstName} ${updated.lastName}`.trim(),
+        email: updated.email,
+        company: { name: updated.department },
+      };
+      await api.updateUser(id, payload);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, ...updated } : u))
+      );
+    } finally {
+      setAction(null);
+    }
   }
 
   async function removeUser(id) {
-    await api.deleteUser(id);
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setAction("deleting");
+    try {
+      await api.deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } finally {
+      setAction(null);
+    }
   }
 
   useEffect(() => {
@@ -70,6 +87,7 @@ export default function useUserData() {
     users,
     loading,
     error,
+    action, // expose action state
     fetchUsers,
     addUser,
     editUser,

@@ -16,7 +16,7 @@ export default function UserList({ users, onEdit, onDelete }) {
             <th className="border px-3 py-2 text-left">Last Name</th>
             <th className="border px-3 py-2 text-left">Email</th>
             <th className="border px-3 py-2 text-left">Department</th>
-            <th className="border px-3 py-2">Actions</th>
+            <th className="border px-3 py-2">Update/Delete</th>
           </tr>
         </thead>
         <tbody>
