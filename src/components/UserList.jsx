@@ -1,10 +1,8 @@
-//           src/components/UserList.jsx dispays list of users in a table format with edit and delete actions
+// src/components/UserList.jsx
 import React from "react";
 
 export default function UserList({ users, onEdit, onDelete }) {
-  if (!users.length) {
-    return <p className="text-center mt-4">no users found</p>;
-  }
+  if (!users.length) return <p className="text-center mt-4">no users found</p>;
 
   return (
     <div className="overflow-x-auto">
@@ -16,7 +14,7 @@ export default function UserList({ users, onEdit, onDelete }) {
             <th className="border px-3 py-2 text-left">Last Name</th>
             <th className="border px-3 py-2 text-left">Email</th>
             <th className="border px-3 py-2 text-left">Department</th>
-            <th className="border px-3 py-2">Update/Delete</th>
+            <th className="border px-3 py-2 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>

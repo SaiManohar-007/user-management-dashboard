@@ -1,4 +1,4 @@
-// src/components/UserForm.jsx this component is used for both adding and editing users
+// src/components/UserForm.jsx
 import React, { useState, useEffect } from "react";
 
 export default function UserForm({ initialData, onSubmit, onCancel }) {
@@ -8,21 +8,16 @@ export default function UserForm({ initialData, onSubmit, onCancel }) {
     email: "",
     department: "",
   });
-//populate form when editing
+
   useEffect(() => {
-    if (initialData) {
-      setForm({
-        firstName: initialData.firstName || "",
-        lastName: initialData.lastName || "",
-        email: initialData.email || "",
-        department: initialData.department || "",
-      });
-    }
+    if (initialData) setForm({ ...initialData });
   }, [initialData]);
+
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
+
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.firstName.trim() || !form.email.trim()) {
@@ -34,11 +29,7 @@ export default function UserForm({ initialData, onSubmit, onCancel }) {
   }
 
   return (
-
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-3 bg-gray-50 p-4 rounded shadow"
-    >
+    <form onSubmit={handleSubmit} className="space-y-3 bg-gray-50 p-4 rounded shadow">
       <div>
         <label className="block mb-1">First Name</label>
         <input
@@ -99,12 +90,10 @@ export default function UserForm({ initialData, onSubmit, onCancel }) {
             className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
           >
             cancel
-
           </button>
         )}
       </div>
     </form>
-
-
   );
 }
+// This component provides a form for adding or editing user details, with fields for first name, last name, email, and department. It handles form state and validation, and calls the provided onSubmit and onCancel callbacks as needed.

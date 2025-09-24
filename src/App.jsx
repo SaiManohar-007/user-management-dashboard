@@ -1,12 +1,26 @@
-// src/App.jsx this is the main application file where everything comes together.
+// src/App.jsx
 import React, { useState } from "react";
 import useUserData from "./hooks/useUserData";
 import UserList from "./components/UserList";
 import UserForm from "./components/UserForm";
+import Pagination from "./components/Pagination";
 
 export default function App() {
-  const { users, loading, error, action, addUser, editUser, removeUser } =
-    useUserData();
+  const {
+    users,
+    loading,
+    error,
+    action,
+    totalUsers,
+    currentPage,
+    pageSize,
+    changePage,
+    changePageSize,
+    addUser,
+    editUser,
+    removeUser,
+  } = useUserData();
+
   const [editingUser, setEditingUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -71,10 +85,15 @@ export default function App() {
       )}
 
       {/* User table */}
-      <UserList
-        users={users}
-        onEdit={handleEditClick}
-        onDelete={removeUser}
+      <UserList users={users} onEdit={handleEditClick} onDelete={removeUser} />
+
+      {/* Pagination controls */}
+      <Pagination
+        totalUsers={totalUsers}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        changePage={changePage}
+        changePageSize={changePageSize}
       />
     </div>
   );
