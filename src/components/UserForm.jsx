@@ -1,99 +1,237 @@
-// src/components/UserForm.jsx
 import React, { useState, useEffect } from "react";
 
-export default function UserForm({ initialData, onSubmit, onCancel }) {
+const trim = (v) => v?.trim() || "";
+
+export default function UserForm({ initialData, onSubmit, onCancel, title = "User Details", submitText = "Save" }) {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     department: "",
   });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   useEffect(() => {
-    if (initialData) setForm({ ...initialData });
+    if (initialData) {
+      setForm({ ...initialData });
+    }
   }, [initialData]);
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
   }
 
-  function handleSubmit(e) {
+  function handleBlur(e) {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    validateField(name, form[name]);
+  }
+
+  function validateField(name, value) {
+    let error = "";
+    
+    switch (name) {
+      case "firstName":
+        if (!trim(value)) error = "First name is required";
+        else if (value.length < 2) error = "First name must be at least 2 characters";
+        break;
+      case "email":
+        if (!trim(value)) error = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Please enter a valid email address";
+        break;
+      case "department":
+        if (value.length > 50) error = "Department name is too long";
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(prev => ({ ...prev, [name]: error }));
+    return !error;
+  }
+
+  function validateForm() {
+    const newErrors = {};
+    let isValid = true;
+
+    if (!trim(form.firstName)) {
+      newErrors.firstName = "First name is required";
+      isValid = false;
+    }
+
+    if (!trim(form.email)) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.firstName.trim() || !form.email.trim()) {
-      alert("first name and email are required");
+    
+    // Mark all fields as touched
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      department: true,
+    });
+
+    if (!validateForm()) {
       return;
     }
-    onSubmit(form);
-    setForm({ firstName: "", lastName: "", email: "", department: "" });
+
+    const cleanedData = {
+      ...form,
+      firstName: trim(form.firstName),
+      lastName: trim(form.lastName),
+      email: trim(form.email).toLowerCase(),
+      department: trim(form.department),
+    };
+
+    try {
+      await onSubmit(cleanedData);
+      // Reset form only if not editing
+      if (!initialData) {
+        setForm({ firstName: "", lastName: "", email: "", department: "" });
+        setTouched({});
+      }
+      setErrors({});
+    } catch (error) {
+      // Handle submission error (e.g., duplicate email)
+      setErrors({ submit: error.message || "Failed to save user" });
+    }
   }
 
+  const getFieldError = (name) => {
+    return touched[name] ? errors[name] : "";
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 bg-gray-50 p-4 rounded shadow">
-      <div>
-        <label className="block mb-1">First Name</label>
-        <input
-          type="text"
-          name="firstName"
-          value={form.firstName}
-          onChange={handleChange}
-          className="w-full border px-2 py-1 rounded"
-          required
-        />
+    <div className="card animate-in">
+      <div className="card-header">
+        <h2 className="card-title mb-0">{title}</h2>
       </div>
+      
+      <form onSubmit={handleSubmit} aria-label="User form">
+        <div className="card-body">
+          <div className="form-grid">
+            <div className="form-field">
+              <label htmlFor="firstName" className="form-label required">
+                First Name
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                className={`form-input ${getFieldError("firstName") ? "error" : ""}`}
+                value={form.firstName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter first name"
+                aria-describedby={getFieldError("firstName") ? "firstName-error" : undefined}
+              />
+              {getFieldError("firstName") && (
+                <div id="firstName-error" className="form-error">
+                  {getFieldError("firstName")}
+                </div>
+              )}
+            </div>
 
-      <div>
-        <label className="block mb-1">Last Name</label>
-        <input
-          type="text"
-          name="lastName"
-          value={form.lastName}
-          onChange={handleChange}
-          className="w-full border px-2 py-1 rounded"
-        />
-      </div>
+            <div className="form-field">
+              <label htmlFor="lastName" className="form-label">
+                Last Name
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                className="form-input"
+                value={form.lastName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter last name"
+              />
+            </div>
 
-      <div>
-        <label className="block mb-1">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border px-2 py-1 rounded"
-          required
-        />
-      </div>
+            <div className="form-field">
+              <label htmlFor="email" className="form-label required">
+                Email Address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                className={`form-input ${getFieldError("email") ? "error" : ""}`}
+                value={form.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter email address"
+                aria-describedby={getFieldError("email") ? "email-error" : undefined}
+              />
+              {getFieldError("email") && (
+                <div id="email-error" className="form-error">
+                  {getFieldError("email")}
+                </div>
+              )}
+            </div>
 
-      <div>
-        <label className="block mb-1">Department</label>
-        <input
-          type="text"
-          name="department"
-          value={form.department}
-          onChange={handleChange}
-          className="w-full border px-2 py-1 rounded"
-        />
-      </div>
+            <div className="form-field">
+              <label htmlFor="department" className="form-label">
+                Department
+              </label>
+              <input
+                id="department"
+                name="department"
+                type="text"
+                className="form-input"
+                value={form.department}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter department"
+              />
+            </div>
+          </div>
 
-      <div className="flex space-x-2">
-        <button
-          type="submit"
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          save
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
-          >
-            cancel
-          </button>
-        )}
-      </div>
-    </form>
+          {errors.submit && (
+            <div className="form-error mt-4" role="alert">
+              {errors.submit}
+            </div>
+          )}
+        </div>
+
+        <div className="card-footer">
+          <div className="flex gap-4 justify-end">
+            {onCancel && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="submit"
+              className="btn btn-primary"
+            >
+              {submitText}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
-// This component provides a form for adding or editing user details, with fields for first name, last name, email, and department. It handles form state and validation, and calls the provided onSubmit and onCancel callbacks as needed.
