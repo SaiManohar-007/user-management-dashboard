@@ -21,9 +21,32 @@ export default function useUserData() {
     department: "",
   });
 
+  // search
+  const [searchTerm, setSearchTerm] = useState("");
+
   // sorting
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc"); // asc or desc
+
+  // Apply search across all fields
+  function applySearch(data) {
+    if (!searchTerm.trim()) return data;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return data.filter((user) => {
+      const searchableFields = [
+        user.firstName || "",
+        user.lastName || "",
+        user.email || "",
+        user.department || "",
+        user.id?.toString() || ""
+      ];
+      
+      return searchableFields.some(field => 
+        field.toLowerCase().includes(term)
+      );
+    });
+  }
 
   function applyFilters(data) {
     return data.filter((u) => {
@@ -61,11 +84,35 @@ export default function useUserData() {
     setUsers(sorted.slice(start, end));
   }
 
+  // Update data processing pipeline
+  function processData() {
+    let processedData = [...allUsers];
+    
+    // Apply search first
+    processedData = applySearch(processedData);
+    
+    // Then apply filters
+    processedData = applyFilters(processedData);
+    
+    // Update total count
+    setTotalUsers(processedData.length);
+    
+    // Apply pagination
+    applyPagination(processedData, currentPage, pageSize);
+  }
+
   function setFilter(newFilters) {
     setFilters(newFilters);
-    const filtered = applyFilters(allUsers);
-    setTotalUsers(filtered.length);
-    applyPagination(filtered, 1, pageSize);
+    setCurrentPage(1);
+  }
+
+  function setSearch(term) {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  }
+
+  function clearSearch() {
+    setSearchTerm("");
     setCurrentPage(1);
   }
 
@@ -76,21 +123,15 @@ export default function useUserData() {
       setSortField(field);
       setSortOrder("asc");
     }
-    const filtered = applyFilters(allUsers);
-    applyPagination(filtered, currentPage, pageSize);
   }
 
   function changePage(page) {
     setCurrentPage(page);
-    const filtered = applyFilters(allUsers);
-    applyPagination(filtered, page, pageSize);
   }
 
   function changePageSize(size) {
     setPageSize(size);
     setCurrentPage(1);
-    const filtered = applyFilters(allUsers);
-    applyPagination(filtered, 1, size);
   }
 
   async function fetchUsers() {
@@ -109,8 +150,6 @@ export default function useUserData() {
         };
       });
       setAllUsers(mapped);
-      setTotalUsers(mapped.length);
-      applyPagination(mapped, currentPage, pageSize);
     } catch (err) {
       setError(err.message || "failed to fetch users");
     } finally {
@@ -130,8 +169,6 @@ export default function useUserData() {
       const created = { id: res.id || Date.now(), ...user };
       const updatedAll = [created, ...allUsers];
       setAllUsers(updatedAll);
-      setTotalUsers(updatedAll.length);
-      applyPagination(updatedAll, currentPage, pageSize);
       return created;
     } finally {
       setAction(null);
@@ -149,7 +186,6 @@ export default function useUserData() {
       await api.updateUser(id, payload);
       const updatedAll = allUsers.map((u) => (u.id === id ? { ...u, ...updated } : u));
       setAllUsers(updatedAll);
-      applyPagination(updatedAll, currentPage, pageSize);
     } finally {
       setAction(null);
     }
@@ -161,12 +197,15 @@ export default function useUserData() {
       await api.deleteUser(id);
       const updatedAll = allUsers.filter((u) => u.id !== id);
       setAllUsers(updatedAll);
-      setTotalUsers(updatedAll.length);
-      applyPagination(updatedAll, currentPage, pageSize);
     } finally {
       setAction(null);
     }
   }
+
+  // Process data whenever dependencies change
+  useEffect(() => {
+    processData();
+  }, [allUsers, filters, searchTerm, sortField, sortOrder, currentPage, pageSize]);
 
   useEffect(() => {
     fetchUsers();
@@ -185,6 +224,9 @@ export default function useUserData() {
     changePageSize,
     filters,
     setFilter,
+    searchTerm,
+    setSearch,
+    clearSearch,
     sortField,
     sortOrder,
     sortBy,

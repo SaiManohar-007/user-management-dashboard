@@ -21,6 +21,9 @@ export default function App() {
     changePageSize,
     filters,
     setFilter,
+    searchTerm,
+    setSearch,
+    clearSearch,
     sortField,
     sortOrder,
     sortBy,
@@ -50,7 +53,6 @@ export default function App() {
       setShowForm(false);
       setEditingUser(null);
     } catch (error) {
-      // Error handling is done in the useUserData hook
       console.error('Form submission error:', error);
     }
   };
@@ -60,8 +62,17 @@ export default function App() {
     setEditingUser(null);
   };
 
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    clearSearch();
+  };
+
   const isActionInProgress = action === "adding" || action === "editing" || action === "deleting";
   const isFormDisabled = loading || isActionInProgress;
+  const hasActiveSearch = searchTerm.trim() !== "";
 
   return (
     <div className="app-container">
@@ -76,20 +87,45 @@ export default function App() {
 
       <main className="app-main">
         <div className="container">
-          {/* Toolbar */}
+          {/* Search Bar */}
           <div className="card mb-6">
             <div className="card-body">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Users {totalUsers !== null && `(${totalUsers})`}
-                  </h2>
-                  <p className="text-gray-600 text-sm">
-                    Manage and organize your user database
-                  </p>
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                <div className="flex-1 w-full">
+                  <label htmlFor="search-users" className="form-label sr-only">
+                    Search users
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {/* <svg className="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg> */}
+                    </div>
+                    <input
+                      id="search-users"
+                      type="text"
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="form-input pl-10 pr-10"
+                      placeholder="Search users by name, email, department, or ID..."
+                      disabled={isFormDisabled}
+                    />
+                    {hasActiveSearch && (
+                      <button
+                        type="button"
+                        onClick={handleClearSearch}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        aria-label="Clear search"
+                      >
+                        <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <button
                     onClick={() => setShowFilter(true)}
                     className="btn btn-secondary"
@@ -115,6 +151,21 @@ export default function App() {
                   </button>
                 </div>
               </div>
+
+              {/* Search Results Info */}
+              {hasActiveSearch && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                  <span>
+                    Found {totalUsers} result{totalUsers !== 1 ? 's' : ''} for "{searchTerm}"
+                  </span>
+                  <button
+                    onClick={handleClearSearch}
+                    className="text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -190,6 +241,7 @@ export default function App() {
                 pageSize={pageSize}
                 changePage={changePage}
                 changePageSize={changePageSize}
+                isLoading={loading}
               />
             </div>
           )}
