@@ -1,17 +1,71 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# User Management App
 
-Currently, two official plugins are available:
+A simple **React + Vite** web application to manage users, featuring **view, add, edit, delete, filter, pagination, and sorting** functionalities. The app uses **JSONPlaceholder** as a mock backend API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## **Features**
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Display a paginated table of users with **ID, First Name, Last Name, Email, Department**
+- Add a new user (simulated with JSONPlaceholder)
+- Edit an existing user
+- Delete a user
+- **Filter / search** users by first name, last name, email, and department
+- **Sort** users by any column (ascending / descending)
+- **Pagination** with configurable page size (10, 25, 50, 100)
+- Responsive layout with Tailwind CSS
+- Loading and action feedback for add/edit/delete
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-"# user-management-dashboard" 
+## **Project Structure**
+
+
+```
+user-management-app/
+├─ public/
+│   └─ index.html
+├─ src/
+│   ├─ api/
+│   │   └─ api.js                 # Axios API functions for CRUD operations
+│   ├─ components/
+│   │   ├─ UserList.jsx            # User table with actions and sorting
+│   │   ├─ UserForm.jsx            # Add/Edit user form
+│   │   ├─ Pagination.jsx          # Pagination component
+│   │   └─ FilterPopup.jsx         # Filter/Search popup
+│   ├─ hooks/
+│   │   └─ useUserData.js          # Custom hook: data, pagination, filter, sort, actions
+│   ├─ App.jsx                      # Main application file
+│   ├─ main.jsx                     # Entry point for React Vite
+│   └─ index.css                    # Tailwind / global CSS
+├─ package.json
+├─ vite.config.js
+└─ README.md
+```
+
+
+---
+
+## **Setup Instructions**
+
+1. **Clone the repository**
+```
+git clone https://github.com/SaiManohar-007/user-management-dashboard
+cd user-management-dashboard
+```
+
+2.**Install dependencies**
+```
+npm install
+```
+
+3.**Run the app**
+```
+npm run dev
+```
+
+4.**Open the app in your browser:**
+```
+http://localhost:5173
+```
